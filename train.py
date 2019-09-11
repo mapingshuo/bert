@@ -25,7 +25,9 @@ import multiprocessing
 
 import paddle
 import paddle.fluid as fluid
+import random
 
+import reader_daxiang.pre_sampled_pretraining as psp
 from reader.pretraining import DataReader
 from model.bert import BertModel, BertConfig
 from optimization import optimization
@@ -61,7 +63,7 @@ log_g.add_arg("verbose",             bool,   False, "Whether to output verbose l
 
 data_g = ArgumentGroup(parser, "data", "Data paths, vocab paths and data processing options")
 data_g.add_arg("data_dir",            str,  "./data/train/",       "Path to training data.")
-data_g.add_arg("validation_set_dir",  str,  "./data/validation/",  "Path to validation data.")
+data_g.add_arg("validation_set_dir",  str,  "",  "Path to validation data.")
 data_g.add_arg("test_set_dir",        str,  None,                  "Path to test data.")
 data_g.add_arg("vocab_path",          str,  "./config/vocab.txt",  "Vocabulary path.")
 data_g.add_arg("max_seq_len",         int,  512,                   "Tokens' number of the longest seqence allowed.")
@@ -216,6 +218,8 @@ def train(args):
 
     train_program = fluid.Program()
     startup_prog = fluid.Program()
+    #train_program.random_seed = 9000
+    #startup_prog.random_seed = 9000
     with fluid.program_guard(train_program, startup_prog):
         with fluid.unique_name.guard():
             train_pyreader, next_sent_acc, mask_lm_loss, total_loss, checkpoints = create_model(
@@ -295,16 +299,19 @@ def train(args):
 
     if args.init_checkpoint and args.init_checkpoint != "":
         init_checkpoint(exe, args.init_checkpoint, train_program, args.use_fp16)
-
-    data_reader = DataReader(
-        data_dir=args.data_dir,
-        batch_size=args.batch_size,
-        in_tokens=args.in_tokens,
-        vocab_path=args.vocab_path,
-        voc_size=bert_config['vocab_size'],
-        epoch=args.epoch,
-        max_seq_len=args.max_seq_len,
-        generate_neg_sample=args.generate_neg_sample)
+  
+    data_reader = psp.DataReader(data_dir=args.data_dir, batch_size=args.batch_size,
+                        in_tokens=args.in_tokens, epoch=args.epoch, max_seq_len=args.max_seq_len)
+ 
+    #data_reader = DataReader(
+    #    data_dir=args.data_dir,
+    #    batch_size=args.batch_size,
+    #    in_tokens=args.in_tokens,
+    #    vocab_path=args.vocab_path,
+    #    voc_size=bert_config['vocab_size'],
+    #    epoch=args.epoch,
+    #    max_seq_len=args.max_seq_len,
+    #    generate_neg_sample=args.generate_neg_sample)
 
     exec_strategy = fluid.ExecutionStrategy()
     exec_strategy.use_experimental_executor = args.use_fast_executor
@@ -314,8 +321,9 @@ def train(args):
     build_strategy = fluid.BuildStrategy()
     build_strategy.num_trainers = nccl2_num_trainers
     build_strategy.trainer_id = nccl2_trainer_id
+
     # use_ngraph is for CPU only, please refer to README_ngraph.md for details
-    #use_ngraph = os.getenv('FLAGS_use_ngraph')
+    # use_ngraph = os.getenv('FLAGS_use_ngraph')
     use_ngraph = True
     if not use_ngraph:
         train_compiled_program = fluid.CompiledProgram(train_program).with_data_parallel(
@@ -333,6 +341,16 @@ def train(args):
             fetch_list=[
                 next_sent_acc.name, mask_lm_loss.name, total_loss.name
             ])
+
+    #i = 0
+    #for d in data_reader.data_generator()():
+    #    print(d)
+    #    i += 1
+    #    if i == 10: break
+    #exit()
+
+    with open('main_program.txt', 'w') as f:
+        f.write(str(train_program))
 
     train_pyreader.decorate_batch_generator(data_reader.data_generator())
     train_pyreader.start()
