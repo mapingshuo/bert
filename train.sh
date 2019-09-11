@@ -21,10 +21,11 @@ case "$is_local" in
     *) echo "not support argument -local: ${is_local}" ; exit 1 ;;
 esac
 
-export FLAGS_fraction_of_gpu_memory_to_use=0
+export FLAGS_fraction_of_gpu_memory_to_use=0.99
 export FLAGS_eager_delete_tensor_gb=0
-export GLOG_vmodule=executor_gc_helper=2
-export CUDA_VISIBLE_DEVICES=2
+#export GLOG_vmodule=executor_gc_helper=2
+export CUDA_VISIBLE_DEVICES=4
+
 source ~/.runrc
 
 # pretrain config
@@ -33,10 +34,16 @@ BATCH_SIZE=4096
 LR_RATE=1e-4
 WEIGHT_DECAY=0.01
 MAX_LEN=128
-TRAIN_DATA_DIR=data/train
-VALIDATION_DATA_DIR=data/validation
-CONFIG_PATH=data/demo_config/bert_config.json
-VOCAB_PATH=data/demo_config/vocab.txt
+#TRAIN_DATA_DIR=data/train
+#VALIDATION_DATA_DIR=data/validation
+#CONFIG_PATH=data/demo_config/bert_config.json
+
+#TRAIN_DATA_DIR=data/train/
+#VALIDATION_DATA_DIR=data/validation/
+TRAIN_DATA_DIR=/ssd2/mapingshuo/dataset/wikipedia_small_seq128/
+CONFIG_PATH=bert_large/bert_config.json
+VOCAB_PATH=bert_large/vocab.txt
+#VOCAB_PATH=data/demo_config/vocab.txt
 
 # Change your train arguments:
 /home/mapingshuo/tmp/paddle_release_home/python/bin/python -u ./train.py ${is_distributed}\
@@ -44,7 +51,6 @@ VOCAB_PATH=data/demo_config/vocab.txt
         --weight_sharing true\
         --batch_size ${BATCH_SIZE} \
         --data_dir ${TRAIN_DATA_DIR} \
-        --validation_set_dir ${VALIDATION_DATA_DIR} \
         --bert_config_path ${CONFIG_PATH} \
         --vocab_path ${VOCAB_PATH} \
         --generate_neg_sample true\

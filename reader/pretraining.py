@@ -30,6 +30,7 @@ import paddle.fluid as fluid
 
 from batching import prepare_batch_data
 
+#np.random.seed(9000)
 
 class DataReader(object):
     def __init__(self,
