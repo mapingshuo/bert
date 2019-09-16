@@ -34,6 +34,8 @@ from optimization import optimization
 from utils.args import ArgumentGroup, print_arguments, check_cuda
 from utils.init import init_checkpoint, init_pretraining_params
 
+random.seed(9000)
+
 # yapf: disable
 parser = argparse.ArgumentParser(__doc__)
 model_g = ArgumentGroup(parser, "model", "model configuration and paths.")
@@ -218,8 +220,10 @@ def train(args):
 
     train_program = fluid.Program()
     startup_prog = fluid.Program()
-    #train_program.random_seed = 9000
-    #startup_prog.random_seed = 9000
+    train_program.random_seed = 9000
+    startup_prog.random_seed = 9000
+    random.seed(9000)
+
     with fluid.program_guard(train_program, startup_prog):
         with fluid.unique_name.guard():
             train_pyreader, next_sent_acc, mask_lm_loss, total_loss, checkpoints = create_model(
@@ -300,7 +304,7 @@ def train(args):
     if args.init_checkpoint and args.init_checkpoint != "":
         init_checkpoint(exe, args.init_checkpoint, train_program, args.use_fp16)
   
-    data_reader = psp.DataReader(data_dir=args.data_dir, batch_size=args.batch_size,
+    data_reader = psp.DataReader(data_dir=args.data_dir, batch_size=args.batch_size,shuffle_files=False,
                         in_tokens=args.in_tokens, epoch=args.epoch, max_seq_len=args.max_seq_len)
  
     #data_reader = DataReader(

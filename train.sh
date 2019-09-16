@@ -24,14 +24,14 @@ esac
 export FLAGS_fraction_of_gpu_memory_to_use=0.99
 export FLAGS_eager_delete_tensor_gb=0
 #export GLOG_vmodule=executor_gc_helper=2
-export CUDA_VISIBLE_DEVICES=4
+export CUDA_VISIBLE_DEVICES=3
 
 source ~/.runrc
 
 # pretrain config
 SAVE_STEPS=10000
 BATCH_SIZE=4096
-LR_RATE=1e-4
+LR_RATE=1e-5
 WEIGHT_DECAY=0.01
 MAX_LEN=128
 #TRAIN_DATA_DIR=data/train
