@@ -24,7 +24,7 @@ esac
 export FLAGS_fraction_of_gpu_memory_to_use=0.99
 export FLAGS_eager_delete_tensor_gb=0
 #export GLOG_vmodule=executor_gc_helper=2
-export CUDA_VISIBLE_DEVICES=3
+export CUDA_VISIBLE_DEVICES=5
 
 source ~/.runrc
 
@@ -46,7 +46,8 @@ VOCAB_PATH=bert_large/vocab.txt
 #VOCAB_PATH=data/demo_config/vocab.txt
 
 # Change your train arguments:
-/home/mapingshuo/tmp/paddle_release_home/python/bin/python -u ./train.py ${is_distributed}\
+
+/home/mapingshuo/paddle_release_home/python-distribute/bin/python -u ./train.py ${is_distributed}\
         --use_cuda true\
         --weight_sharing true\
         --batch_size ${BATCH_SIZE} \

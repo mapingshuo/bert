@@ -73,12 +73,12 @@ def optimization(loss,
             raise ValueError("Unkown learning rate scheduler, should be "
                              "'noam_decay' or 'linear_warmup_decay'")
         optimizer = fluid.optimizer.Adam(learning_rate=scheduled_lr)
-        #optimizer = fluid.optimizer.RecomputeOptimizer(optimizer, debug=False, debug_batchsize=80000/128)
-        #optimizer._set_checkpoints(checkpoints)
+        optimizer = fluid.optimizer.RecomputeOptimizer(optimizer)
+        optimizer._set_checkpoints(checkpoints)
     else:
         optimizer = fluid.optimizer.Adam(learning_rate=learning_rate)
-        #optimizer = fluid.optimizer.RecomputeOptimizer(optimizer, debug=False, debug_batchsize=80000/128)
-        #optimizer._set_checkpoints(checkpoints)
+        optimizer = fluid.optimizer.RecomputeOptimizer(optimizer)
+        optimizer._set_checkpoints(checkpoints)
         scheduled_lr = learning_rate
 
     clip_norm_thres = 1.0
